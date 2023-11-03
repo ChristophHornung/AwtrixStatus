@@ -5,87 +5,89 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:AwtrixStatus"
 		mc:Ignorable="d"
-		Title="MainWindow"
+		Title="Awtrix Notifier"
 		SizeToContent="WidthAndHeight"
 		xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
 		TextElement.Foreground="{DynamicResource MaterialDesignBody}"
 		Background="{DynamicResource MaterialDesignPaper}"
-		TextElement.FontWeight="Medium"
 		TextElement.FontSize="14"
 		FontFamily="{materialDesign:MaterialDesignFont}"
 		Height="450" Width="800" d:DataContext="{d:DesignInstance local:MainWindowViewModel}">
+
 	<materialDesign:DialogHost DialogTheme="Inherit"
 							   Identifier="RootDialog">
-		<Grid>
+		<Grid Margin="16">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto" />
 				<RowDefinition Height="*" />
 			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
+				<ColumnDefinition MinWidth="150" Width="Auto" />
 				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="*" MinWidth="300" />
+				<ColumnDefinition Width="*" />
 			</Grid.ColumnDefinitions>
+			<!-- App Header -->
 			<materialDesign:ColorZone Padding="16"
-									  Margin="0,0,0,24"
-									  materialDesign:ElevationAssist.Elevation="Dp4"
 									  Grid.ColumnSpan="3"
-									  Mode="PrimaryLight"
-									  HorizontalAlignment="Stretch">
-				<TextBlock>Awtrix Notifier</TextBlock>
+									  Mode="PrimaryMid"
+									  HorizontalAlignment="Stretch"
+									  VerticalAlignment="Top"
+									  materialDesign:ElevationAssist.Elevation="Dp2">
+				<TextBlock Text="Awtrix Notifier"
+						   Style="{StaticResource MaterialDesignHeadline5TextBlock}" />
 			</materialDesign:ColorZone>
-			<StackPanel
+			<!-- Clocks Selection -->
+			<ListBox
 				Grid.Row="1"
 				Grid.Column="0"
-				Margin="4,0,0,0">
-				<TextBlock 
-					Style="{StaticResource MaterialDesignHeadline6TextBlock}">Clocks</TextBlock>
-				<ListBox
-					Margin="0,0,24,0"
-					SelectedItem="{Binding SelectedClock, UpdateSourceTrigger=PropertyChanged}"
-					ItemsSource="{Binding Clocks}"
-					Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<StackPanel Orientation="Horizontal">
-								<materialDesign:PackIcon Kind="ClockOutline" />
-								<TextBlock
-									Text="{Binding Name}" />
-							</StackPanel>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
-			</StackPanel>
+				Margin="0,8,8,8"
+				SelectedItem="{Binding SelectedClock, UpdateSourceTrigger=PropertyChanged}"
+				ItemsSource="{Binding Clocks}"
+				Style="{StaticResource MaterialDesignNavigationListBox}" d:ItemsSource="{d:SampleData ItemCount=5}">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal">
+							<materialDesign:PackIcon Kind="ClockOutline"
+													 Width="24" Height="24"
+													 VerticalAlignment="Center" Margin="0,0,8,0" />
+							<TextBlock Text="{Binding Name}"
+									   VerticalAlignment="Center" />
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+			<!-- Traffic Light Status -->
 			<materialDesign:Card
-				Margin="6,0,24,0"
-				Padding="6"
-				Grid.Row="1" Grid.Column="1">
+				Grid.Row="1" Grid.Column="1"
+				Margin="8"
+				Padding="16"
+				materialDesign:ElevationAssist.Elevation="Dp1">
 				<StackPanel>
-					<TextBlock FontWeight="Bold">Status</TextBlock>
+					<TextBlock Text="Status"
+							   Style="{StaticResource MaterialDesignTitleMediumTextBlock}" Margin="0,0,0,8" />
 					<local:TrafficLightControl State="{Binding TrafficState, Mode=TwoWay}"
-											   VerticalAlignment="Center" />
+											   VerticalAlignment="Center" Margin="0,4,0,0" />
 				</StackPanel>
 			</materialDesign:Card>
-
-			<materialDesign:Card Grid.Column="2" Grid.Row="1" Padding="6">
-				<Grid>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="Auto" />
-					</Grid.RowDefinitions>
-					<TextBlock FontWeight="Bold"
-							   Margin="0,0,0,12">
-						Notification
-					</TextBlock>
-					<TextBox Grid.Row="1" Text="{Binding NotificationText}"
+			<!-- Notification Area -->
+			<materialDesign:Card Grid.Column="2" Grid.Row="1"
+								 Padding="16"
+								 Margin="8"
+								 materialDesign:ElevationAssist.Elevation="Dp1">
+				<StackPanel>
+					<TextBlock Text="Notification"
+							   Style="{StaticResource MaterialDesignTitleMediumTextBlock}"
+							   Margin="0,0,0,16" />
+					<TextBox Text="{Binding NotificationText}"
 							 materialDesign:HintAssist.Hint="Notification Text"
-							 Margin="0,0,0,6" />
-					<Button Grid.Row="2" Command="{Binding SendCommand}"
-							HorizontalAlignment="Left">
-						Send
-					</Button>
-				</Grid>
+							 Style="{StaticResource MaterialDesignTextBox}"
+							 Margin="0,0,0,8" />
+					<Button Command="{Binding SendCommand}"
+							Content="Send"
+							Style="{StaticResource MaterialDesignRaisedButton}"
+							HorizontalAlignment="Right"
+							Margin="0,8,0,0" />
+				</StackPanel>
 			</materialDesign:Card>
 		</Grid>
 	</materialDesign:DialogHost>
