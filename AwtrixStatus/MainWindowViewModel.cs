@@ -1,9 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Options;
@@ -13,6 +16,7 @@ namespace AwtrixStatus;
 public class MainWindowViewModel : INotifyPropertyChanged
 {
 	private TrafficState trafficState;
+	private ClockSetting? selectedClock;
 
 	public MainWindowViewModel(IOptions<ClockSettings> clockSettings)
 	{
@@ -22,14 +26,31 @@ public class MainWindowViewModel : INotifyPropertyChanged
 		this.TeamStatusHandler = new TeamsLogStatusUpdater();
 		this.TeamStatusHandler.OnStatusChanged += this.TeamStatusHandlerOnStatusChanged;
 		this.TeamStatusHandler.OnActivityChanged += this.TeamStatusHandlerOnActivityChanged;
-		//this.TeamStatusHandler.StartMonitoring();
+		this.PropertyChanged += this.HandleSelfPropertyChangedInternal;
 	}
+
+	public ObservableCollection<string> Effects { get; } = new();
 
 	public IOptions<ClockSettings> ClockSettingsOptions { get; }
 
+	public AwtrixNotificationViewModel NotificationViewModel { get; } = new();
+
 	public List<ClockSetting> Clocks => this.ClockSettingsOptions.Value.Clocks;
 
-	public ClockSetting? SelectedClock { get; set; }
+	public ClockSetting? SelectedClock
+	{
+		get => this.selectedClock;
+		set
+		{
+			if (Equals(value, this.selectedClock))
+			{
+				return;
+			}
+
+			this.selectedClock = value;
+			this.OnPropertyChanged();
+		}
+	}
 
 	public ICommand SendCommand => new AsyncRelayCommand(this.OnSend);
 
@@ -48,11 +69,53 @@ public class MainWindowViewModel : INotifyPropertyChanged
 		}
 	}
 
+	public string? SelectedEffect { get; set; }
+
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private async void HandleSelfPropertyChangedInternal(object? sender, PropertyChangedEventArgs e)
+	{
+		if (e.PropertyName == nameof(this.SelectedClock))
+		{
+			await this.LoadEffects();
+		}
+	}
+
+	private async Task LoadEffects()
+	{
+		if (this.SelectedClock == null)
+		{
+			return;
+		}
+
+		string url = this.SelectedClock.Url;
+		if (!url.EndsWith("/"))
+		{
+			url += "/";
+		}
+
+		url += "api/effects";
+		using HttpClient client = new();
+		client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+		string[]? response = await client.GetFromJsonAsync<string[]>(url);
+		if (response != null)
+		{
+			this.Effects.Clear();
+			foreach (string effect in response)
+			{
+				this.Effects.Add(effect);
+			}
+		}
+		else
+		{
+			this.Effects.Clear();
+		}
 	}
 
 	private async Task OnSend()
@@ -71,14 +134,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
 		url += "api/notify";
 		using HttpClient client = new();
 		client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-		string json = JsonSerializer.Serialize(new
+		var serializeOptions = new JsonSerializerOptions
 		{
-			text = this.NotificationText,
-			effect = "SwirlOut",
-			stack = false,
-			duration = 15
-		});
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+			WriteIndented = true,
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+		};
+		string json = JsonSerializer.Serialize(this.NotificationViewModel.Notification, serializeOptions);
 
 		HttpResponseMessage response = await client.PostAsync(url, new StringContent(json));
 	}

@@ -12,8 +12,13 @@
 		Background="{DynamicResource MaterialDesignPaper}"
 		TextElement.FontSize="14"
 		FontFamily="{materialDesign:MaterialDesignFont}"
-		Height="450" Width="800" d:DataContext="{d:DesignInstance local:MainWindowViewModel}">
-
+		x:Name="This"
+		Height="450" Width="800"
+		d:DataContext="{d:DesignInstance local:MainWindowViewModel}">
+	<Window.Resources>
+		<materialDesign:NullableToVisibilityConverter x:Key="HiddenIfNotNull" NullValue="Hidden" />
+		<materialDesign:NullableToVisibilityConverter x:Key="VisibleIfNull" NullValue="Visible" NotNullValue="Collapsed" />
+	</Window.Resources>
 	<materialDesign:DialogHost DialogTheme="Inherit"
 							   Identifier="RootDialog">
 		<Grid Margin="16">
@@ -24,7 +29,7 @@
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition MinWidth="150" Width="Auto" />
 				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" MinWidth="300" />
 			</Grid.ColumnDefinitions>
 			<!-- App Header -->
 			<materialDesign:ColorZone Padding="16"
@@ -44,6 +49,13 @@
 				SelectedItem="{Binding SelectedClock, UpdateSourceTrigger=PropertyChanged}"
 				ItemsSource="{Binding Clocks}"
 				Style="{StaticResource MaterialDesignNavigationListBox}" d:ItemsSource="{d:SampleData ItemCount=5}">
+				<ListBox.ItemContainerStyle>
+					<Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource MaterialDesignNavigationListBoxItem}">
+						<Style.Setters>
+							<Setter Property="Margin" Value="0,0,4,4" />
+						</Style.Setters>
+					</Style>
+				</ListBox.ItemContainerStyle>
 				<ListBox.ItemTemplate>
 					<DataTemplate>
 						<StackPanel Orientation="Horizontal">
@@ -59,8 +71,9 @@
 			<!-- Traffic Light Status -->
 			<materialDesign:Card
 				Grid.Row="1" Grid.Column="1"
+				Visibility="{Binding SelectedClock, Converter={StaticResource HiddenIfNotNull}}"
 				Margin="8"
-				Padding="16"
+				Padding="16,8,16,8"
 				materialDesign:ElevationAssist.Elevation="Dp1">
 				<StackPanel>
 					<TextBlock Text="Status"
@@ -70,25 +83,19 @@
 				</StackPanel>
 			</materialDesign:Card>
 			<!-- Notification Area -->
-			<materialDesign:Card Grid.Column="2" Grid.Row="1"
-								 Padding="16"
-								 Margin="8"
-								 materialDesign:ElevationAssist.Elevation="Dp1">
-				<StackPanel>
-					<TextBlock Text="Notification"
-							   Style="{StaticResource MaterialDesignTitleMediumTextBlock}"
-							   Margin="0,0,0,16" />
-					<TextBox Text="{Binding NotificationText}"
-							 materialDesign:HintAssist.Hint="Notification Text"
-							 Style="{StaticResource MaterialDesignTextBox}"
-							 Margin="0,0,0,8" />
-					<Button Command="{Binding SendCommand}"
-							Content="Send"
-							Style="{StaticResource MaterialDesignRaisedButton}"
-							HorizontalAlignment="Right"
-							Margin="0,8,0,0" />
-				</StackPanel>
-			</materialDesign:Card>
+			<local:AwtrixNotificationView Grid.Column="2" Grid.Row="1"
+										  Effects="{Binding ElementName=This, Path=DataContext.Effects}"
+										  SendCommand="{Binding ElementName=This, Path= DataContext.SendCommand}"
+										  Visibility="{Binding ElementName=This, Path=DataContext.SelectedClock, Converter={StaticResource HiddenIfNotNull}}"
+										  DataContext="{Binding NotificationViewModel}" />
+			<TextBlock Grid.Column="1"
+					   Grid.Row="1"
+					   Grid.ColumnSpan="2"
+					   Text="Please select a clock"
+					   HorizontalAlignment="Center"
+					   VerticalAlignment="Center"
+					   Visibility="{Binding SelectedClock, Converter={StaticResource VisibleIfNull}}"
+					   Margin="8" />
 		</Grid>
 	</materialDesign:DialogHost>
 </Window>
