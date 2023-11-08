@@ -13,16 +13,18 @@
 		TextElement.FontSize="14"
 		FontFamily="{materialDesign:MaterialDesignFont}"
 		x:Name="This"
-		Height="450" Width="800"
+		Height="800" Width="800"
 		d:DataContext="{d:DesignInstance local:MainWindowViewModel}">
 	<Window.Resources>
 		<materialDesign:NullableToVisibilityConverter x:Key="HiddenIfNotNull" NullValue="Hidden" />
 		<materialDesign:NullableToVisibilityConverter x:Key="VisibleIfNull" NullValue="Visible" NotNullValue="Collapsed" />
+		<local:ColorToBrushConverter x:Key="ColorToBrushConverter" />
 	</Window.Resources>
 	<materialDesign:DialogHost DialogTheme="Inherit"
 							   Identifier="RootDialog">
 		<Grid Margin="16">
 			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
 				<RowDefinition Height="Auto" />
 				<RowDefinition Height="*" />
 			</Grid.RowDefinitions>
@@ -96,6 +98,55 @@
 					   VerticalAlignment="Center"
 					   Visibility="{Binding SelectedClock, Converter={StaticResource VisibleIfNull}}"
 					   Margin="8" />
+			<materialDesign:Card
+				Grid.Row="2" Grid.Column="1"
+				Grid.ColumnSpan="2"
+				Visibility="{Binding SelectedClock, Converter={StaticResource HiddenIfNotNull}}"
+				Margin="8"
+				Padding="16,8,16,8"
+				materialDesign:ElevationAssist.Elevation="Dp1">
+				<StackPanel>
+					<TextBlock Text="Draw"
+							   Style="{StaticResource MaterialDesignTitleMediumTextBlock}" Margin="0,0,0,8" />
+					<materialDesign:ColorPicker Color="{Binding PaintColor}"
+												Margin="0,0,0,12"
+												Height="100"/>
+					<ItemsControl ItemsSource="{Binding Pixels}"  
+								  HorizontalAlignment="Left">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type local:PixelViewModel}">
+								<Button Command="{Binding ElementName=This, Path=DataContext.SetColorCommand}"
+										CommandParameter="{Binding}"
+										Margin="0,0,1,1">
+									<Button.Style>
+										<Style TargetType="{x:Type Button}">
+											<Setter Property="Template">
+												<Setter.Value>
+													<ControlTemplate TargetType="{x:Type Button}">
+														<Border Background="{Binding Color, Converter={StaticResource ColorToBrushConverter}}"
+																Width="20"
+																Height="20" />
+													</ControlTemplate>
+												</Setter.Value>
+											</Setter>
+										</Style>
+									</Button.Style>
+								</Button>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<UniformGrid Rows="8" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+					</ItemsControl>
+					<Button Command="{Binding SendPixelsCommand}"
+							Content="Send"
+							Style="{StaticResource MaterialDesignRaisedButton}"
+							HorizontalAlignment="Right"
+							Margin="0,12,0,0" />
+				</StackPanel>
+			</materialDesign:Card>
 		</Grid>
 	</materialDesign:DialogHost>
 </Window>

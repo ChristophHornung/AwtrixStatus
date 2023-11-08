@@ -6,8 +6,13 @@
 			 xmlns:local="clr-namespace:AwtrixStatus"
 			 xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
 			 mc:Ignorable="d"
-			 d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance local:AwtrixNotificationViewModel}"
+			 d:DesignHeight="450"
+			 d:DesignWidth="800"
+			 d:DataContext="{d:DesignInstance local:AwtrixNotificationViewModel}"
 			 x:Name="This">
+	<UserControl.Resources>
+		<local:ColorToHexStringConverter x:Key="ColorToHexStringConverter" />
+	</UserControl.Resources>
 	<materialDesign:Card Padding="16,8,16,8"
 						 Margin="8,8,0,8"
 						 materialDesign:ElevationAssist.Elevation="Dp1">
@@ -17,17 +22,48 @@
 					   Margin="0,0,0,16" />
 			<TextBox Text="{Binding Notification.Text}"
 					 materialDesign:HintAssist.Hint="Notification Text"
-					 Style="{StaticResource MaterialDesignTextBox}"
-					 Margin="0,0,0,8" />
+					 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+					 Margin="0,0,0,4" />
+			<materialDesign:ColorPicker Color="{Binding Color, Converter={StaticResource ColorToHexStringConverter}}" 
+										Margin="0,0,0,12"
+										Height="100"/>
 			<ComboBox ItemsSource="{Binding  ElementName=This, Path=Effects}"
 					  SelectedItem="{Binding Notification.Effect}"
 					  materialDesign:HintAssist.Hint="Effect"
+					  Margin="0,0,0,12"
 					  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
-			<Button Command="{Binding ElementName=This,Path= SendCommand}"
+			<WrapPanel Margin="0,0,0,12">
+				<CheckBox IsChecked="{Binding Notification.TopText}">Draw on top</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.Center}">
+					Center
+				</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.Rainbow}">
+					Rainbow
+				</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.Hold}">
+					Hold
+				</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.Stack}">
+					Stack
+				</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.Wakeup}">
+					Wakeup
+				</CheckBox>
+				<CheckBox Margin="4,0,0,0"
+						  IsChecked="{Binding Notification.NoScroll}">
+					No scroll
+				</CheckBox>
+			</WrapPanel>
+			<Button Command="{Binding ElementName=This, Path= SendCommand}"
 					Content="Send"
 					Style="{StaticResource MaterialDesignRaisedButton}"
 					HorizontalAlignment="Right"
-					Margin="0,8,0,0" />
+					Margin="0,12,0,0" />
 		</StackPanel>
 	</materialDesign:Card>
 
